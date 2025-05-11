@@ -1,0 +1,199 @@
+erDiagram
+    Leads {
+        uuid id PK
+        string lead_source
+        string utm_source
+        string utm_medium
+        string utm_campaign
+        string utm_content
+        string phone_number
+        string email
+        string first_name
+        string last_name
+        json custom_fields
+        string status
+        timestamp created_at
+        timestamp updated_at
+        uuid assigned_to FK
+    }
+    
+    Customers {
+        uuid id PK
+        string first_name
+        string last_name
+        string email
+        string phone_number
+        string address
+        string city
+        json custom_fields
+        timestamp created_at
+        timestamp updated_at
+        uuid lead_id FK
+    }
+    
+    Products {
+        uuid id PK
+        string name
+        string sku
+        string description
+        decimal price
+        decimal cost
+        string category
+        boolean active
+        int warranty_months
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Packages {
+        uuid id PK
+        string name
+        string description
+        decimal base_price
+        boolean active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    PackageItems {
+        uuid id PK
+        uuid package_id FK
+        uuid product_id FK
+        int quantity
+        decimal price_override
+    }
+    
+    Orders {
+        uuid id PK
+        uuid customer_id FK
+        string status
+        decimal subtotal
+        decimal discount
+        decimal tax
+        decimal total
+        string payment_method
+        string payment_status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    OrderItems {
+        uuid id PK
+        uuid order_id FK
+        uuid product_id FK
+        uuid package_id FK
+        int quantity
+        decimal unit_price
+        decimal total_price
+    }
+    
+    Invoices {
+        uuid id PK
+        uuid order_id FK
+        string invoice_number
+        string status
+        decimal amount
+        timestamp due_date
+        timestamp paid_at
+        timestamp created_at
+    }
+    
+    Technicians {
+        uuid id PK
+        string first_name
+        string last_name
+        string email
+        string phone_number
+        string status
+        json skills
+        json work_schedule
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    ServiceAppointments {
+        uuid id PK
+        uuid customer_id FK
+        uuid technician_id FK
+        uuid product_id FK
+        string service_type
+        string status
+        timestamp scheduled_at
+        timestamp completed_at
+        string notes
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Inventory {
+        uuid id PK
+        uuid product_id FK
+        int quantity
+        int min_threshold
+        timestamp last_restock
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Documents {
+        uuid id PK
+        string name
+        string type
+        string path
+        uuid customer_id FK
+        uuid product_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Notifications {
+        uuid id PK
+        uuid customer_id FK
+        string type
+        string status
+        string channel
+        json content
+        timestamp scheduled_for
+        timestamp sent_at
+        timestamp created_at
+    }
+    
+    Warranties {
+        uuid id PK
+        uuid customer_id FK
+        uuid product_id FK
+        uuid order_item_id FK
+        timestamp start_date
+        timestamp end_date
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Users {
+        uuid id PK
+        string first_name
+        string last_name
+        string email
+        string role
+        boolean active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    Leads ||--o{ Customers : "converts to"
+    Leads }o--|| Users : "assigned to"
+    Customers ||--o{ Orders : "places"
+    Customers ||--o{ ServiceAppointments : "schedules"
+    Customers ||--o{ Documents : "has"
+    Customers ||--o{ Notifications : "receives"
+    Products ||--o{ OrderItems : "included in"
+    Products ||--o{ Inventory : "tracked in"
+    Products ||--o{ Documents : "has"
+    Products ||--o{ PackageItems : "part of"
+    Packages ||--o{ PackageItems : "contains"
+    Packages ||--o{ OrderItems : "ordered as"
+    Orders ||--o{ OrderItems : "contains"
+    Orders ||--|| Invoices : "generates"
+    OrderItems ||--o{ Warranties : "covers"
+    Technicians ||--o{ ServiceAppointments : "performs"

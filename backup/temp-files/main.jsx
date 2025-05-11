@@ -1,0 +1,1 @@
+import React from 'react';import ReactDOM from 'react-dom/client';function App(){return React.createElement('div',{style:{padding:'20px'}},React.createElement('h1',null,'Hello CRM'),React.createElement('p',null,'Basic setup working'))};ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App)); 

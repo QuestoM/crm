@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Dashboard | לוח בקרה מערכת CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card {
+            border-left: 4px solid;
+            min-height: 100px;
+        }
+        .stat-card.lead {
+            border-color: #4e73df;
+        }
+        .stat-card.customer {
+            border-color: #1cc88a;
+        }
+        .stat-card.product {
+            border-color: #36b9cc;
+        }
+        .stat-card.order {
+            border-color: #f6c23e;
+        }
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .nav-link {
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">טוען...</span>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-droplet-fill"></i> מערכת CRM לחברת מים
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">דף הבית</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">לקוחות</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">לידים</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">מוצרים</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">הזמנות</a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    שלום, מנהל מערכת
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="h3 mb-0 text-gray-800">דף הבית</h1>
+                <p class="text-muted">סקירה כללית של המערכת</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card lead">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="bi bi-person-plus stat-icon text-primary"></i>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title text-uppercase text-muted mb-0">לידים חדשים</h5>
+                                <span id="leadCount" class="h2 font-weight-bold mb-0">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card customer">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="bi bi-people stat-icon text-success"></i>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title text-uppercase text-muted mb-0">לקוחות</h5>
+                                <span id="customerCount" class="h2 font-weight-bold mb-0">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card product">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="bi bi-box stat-icon text-info"></i>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title text-uppercase text-muted mb-0">מוצרים</h5>
+                                <span id="productCount" class="h2 font-weight-bold mb-0">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card order">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="bi bi-cart stat-icon text-warning"></i>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title text-uppercase text-muted mb-0">הזמנות</h5>
+                                <span id="orderCount" class="h2 font-weight-bold mb-0">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h6 class="m-0 font-weight-bold">לידים אחרונים</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>שם</th>
+                                        <th>טלפון</th>
+                                        <th>מקור</th>
+                                        <th>סטטוס</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leadsTable">
+                                    <!-- Will be filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h6 class="m-0 font-weight-bold">לקוחות אחרונים</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>שם</th>
+                                        <th>טלפון</th>
+                                        <th>אימייל</th>
+                                        <th>תאריך הצטרפות</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTable">
+                                    <!-- Will be filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h6 class="m-0 font-weight-bold">מוצרים פופולריים</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>שם המוצר</th>
+                                        <th>מק"ט</th>
+                                        <th>קטגוריה</th>
+                                        <th>מחיר</th>
+                                        <th>מלאי</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTable">
+                                    <!-- Will be filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://rhpntgjnzhtxswanibep.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJocG50Z2puemh0eHN3YW5pYmVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTIzMzMxOTUsImV4cCI6MTcwNzg4NTE5NX0.hgDSLHdXwVJLKeMwXmfuYqG6TG1oF0o7WPSHHjVcCGo';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Format date function
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('he-IL', options);
+        }
+
+        // Status badge helper
+        function getStatusBadge(status) {
+            const statusMap = {
+                'new': '<span class="badge bg-primary">חדש</span>',
+                'contacted': '<span class="badge bg-info">נוצר קשר</span>',
+                'qualified': '<span class="badge bg-success">מוסמך</span>',
+                'proposal': '<span class="badge bg-warning">הצעת מחיר</span>',
+                'negotiation': '<span class="badge bg-secondary">משא ומתן</span>',
+                'won': '<span class="badge bg-success">זכה</span>',
+                'lost': '<span class="badge bg-danger">אבד</span>',
+                'dormant': '<span class="badge bg-dark">רדום</span>'
+            };
+            return statusMap[status] || '<span class="badge bg-secondary">לא ידוע</span>';
+        }
+
+        // Category display helper
+        function getCategoryDisplay(category) {
+            const categoryMap = {
+                'water_filter': 'מסנן מים',
+                'water_bar': 'בר מים',
+                'replacement_filter': 'פילטר חלופי',
+                'accessory': 'אביזר',
+                'cleaning_kit': 'ערכת ניקוי',
+                'maintenance_kit': 'ערכת תחזוקה',
+                'part': 'חלק חילוף',
+                'service': 'שירות',
+                'other': 'אחר'
+            };
+            return categoryMap[category] || category;
+        }
+
+        // Load all data
+        async function loadData() {
+            try {
+                document.getElementById('loading').style.display = 'flex';
+
+                // Fetch counts for statistic cards
+                const [leadsResult, customersResult, productsResult, ordersResult] = await Promise.all([
+                    supabase.from('leads').select('*', { count: 'exact', head: true }),
+                    supabase.from('customers').select('*', { count: 'exact', head: true }),
+                    supabase.from('products').select('*', { count: 'exact', head: true }),
+                    supabase.from('orders').select('*', { count: 'exact', head: true })
+                ]);
+
+                // Update counters
+                document.getElementById('leadCount').textContent = leadsResult.count || 0;
+                document.getElementById('customerCount').textContent = customersResult.count || 0;
+                document.getElementById('productCount').textContent = productsResult.count || 0;
+                document.getElementById('orderCount').textContent = ordersResult.count || 0;
+
+                // Fetch recent leads
+                const { data: leads, error: leadsError } = await supabase
+                    .from('leads')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (leadsError) throw leadsError;
+
+                // Populate leads table
+                const leadsTable = document.getElementById('leadsTable');
+                leadsTable.innerHTML = '';
+                
+                if (leads && leads.length > 0) {
+                    leads.forEach(lead => {
+                        leadsTable.innerHTML += `
+                            <tr>
+                                <td>${lead.first_name} ${lead.last_name}</td>
+                                <td>${lead.phone_number}</td>
+                                <td>${lead.lead_source}</td>
+                                <td>${getStatusBadge(lead.status)}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    leadsTable.innerHTML = `<tr><td colspan="4" class="text-center">אין לידים להצגה</td></tr>`;
+                }
+
+                // Fetch recent customers
+                const { data: customers, error: customersError } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (customersError) throw customersError;
+
+                // Populate customers table
+                const customersTable = document.getElementById('customersTable');
+                customersTable.innerHTML = '';
+                
+                if (customers && customers.length > 0) {
+                    customers.forEach(customer => {
+                        customersTable.innerHTML += `
+                            <tr>
+                                <td>${customer.first_name} ${customer.last_name}</td>
+                                <td>${customer.phone_number}</td>
+                                <td>${customer.email || '-'}</td>
+                                <td>${formatDate(customer.created_at)}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    customersTable.innerHTML = `<tr><td colspan="4" class="text-center">אין לקוחות להצגה</td></tr>`;
+                }
+
+                // Fetch products with inventory
+                const { data: products, error: productsError } = await supabase
+                    .from('products')
+                    .select(`
+                        *,
+                        inventory (quantity)
+                    `)
+                    .eq('active', true)
+                    .order('name')
+                    .limit(10);
+
+                    if (products && products.length > 0) {
+                        tableBody.innerHTML = products.map((product, index) => {
+                        // --- DEBUGGING START ---
+                        console.log(`Product ID (Table): ${product.id}, Name: ${product.name}`);
+                        console.log('Raw Inventory Data (Table):', product.inventory); // Log the raw inventory array
+                        const quantityFromData = product.inventory ? product.inventory.quantity : 0;
+                        console.log('Extracted Quantity (Table):', quantityFromData, typeof quantityFromData); // Log the extracted value and its type
+                        // --- DEBUGGING END ---
+
+                        return `
+                            <tr data-id="${product.id}" data-type="product">
+                            <td>${product.name}</td>
+                            <td>${product.category}</td>
+                            <td>${product.price} ₪</td>
+                            <td>${quantityFromData}</td>
+                            <td><span class="badge badge-${product.status === 'פעיל' ? 'green' : 'yellow'}">${product.status}</span></td>
+                            <td><button class="button button-primary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">צפה</button></td>
+                            </tr>
+                        `;
+                        }).join('');
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">לא נמצאו מוצרים</td></tr>';
+                    }
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('שגיאה בטעינת הנתונים מהשרת');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Load data when document is ready
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,79 @@
+graph TD
+    subgraph "Presentation Layer"
+        UI[UI Components]
+        Pages[Page Components]
+        Layouts[Layout Components]
+        UIState[UI State Management]
+    end
+
+    subgraph "Application Layer"
+        API[API Routes]
+        Hooks[Custom Hooks]
+        Services[Service Layer]
+        Events[Event System]
+    end
+
+    subgraph "Domain Layer"
+        Models[Domain Models]
+        Validators[Validators]
+        BusinessRules[Business Rules]
+    end
+
+    subgraph "Infrastructure Layer"
+        DBAccess[Database Access]
+        Auth[Authentication]
+        Storage[File Storage]
+        ExternalAPIs[External APIs]
+    end
+
+    subgraph "External Systems"
+        EmailService[Email Service]
+        SMSProvider[SMS Provider]
+        PaymentGateway[Payment Gateway]
+    end
+
+    UI --> Pages
+    Pages --> Layouts
+    UI --> UIState
+    Pages --> Hooks
+    
+    Hooks --> Services
+    API --> Services
+    Services --> Events
+    
+    Services --> Models
+    Services --> Validators
+    Services --> BusinessRules
+    
+    Services --> DBAccess
+    Services --> Auth
+    Services --> Storage
+    Services --> ExternalAPIs
+    
+    ExternalAPIs --> EmailService
+    ExternalAPIs --> SMSProvider
+    ExternalAPIs --> PaymentGateway
+    
+    subgraph "Core Modules"
+        LeadModule[Lead Management]
+        CustomerModule[Customer Management]
+        ProductModule[Product Management]
+        SalesModule[Sales & Invoicing]
+        JourneyModule[Customer Journey]
+        TechModule[Technician Management]
+        InventoryModule[Inventory Management]
+        DocModule[Document Management]
+        AnalyticsModule[Reporting & Analytics]
+        WarrantyModule[Warranty Management]
+    end
+    
+    Services --> LeadModule
+    Services --> CustomerModule
+    Services --> ProductModule
+    Services --> SalesModule
+    Services --> JourneyModule
+    Services --> TechModule
+    Services --> InventoryModule
+    Services --> DocModule
+    Services --> AnalyticsModule
+    Services --> WarrantyModule

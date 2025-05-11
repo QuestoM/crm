@@ -1,0 +1,11 @@
+/* Additional app styling */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* RTL-specific styles */
+.rtl-flip {
+  transform: scaleX(-1);
+} 
