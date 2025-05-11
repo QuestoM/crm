@@ -1,0 +1,56 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# TAILUX UI KIT INTEGRATION GUIDELINES (FOR CRM DEVELOPMENT/LLM/AI):
+
+## CORE PRINCIPLE: TAILUX-FIRST FOR UI
+- **PRIORITY:** Tailux is the designated UI Kit for this CRM project. Its components, layouts, and patterns are the **first choice** for all front-end UI elements.
+- **RATIONALE:** To accelerate development, ensure visual consistency, leverage pre-built responsiveness, and utilize a well-tested component library. This directly supports "PRIORITIZE EXISTING LIBRARIES".
+
+## COMPONENT UTILIZATION:
+- **COMPONENT-DRIVEN DEVELOPMENT:** When a UI element is needed (e.g., button, table, modal, form, layout, dashboard section), **first check if Tailux provides a suitable component or template.**
+    - Example: "Implement the customer list using Tailux's Advanced Data Table component."
+    - Example: "Create the new lead form using Tailux's Interactive Form components and structure."
+- **LEVERAGE PRE-BUILT ASSETS:** Actively seek to utilize Tailux's prebuilt:
+    - **Dashboards:** (e.g., Sales, Analytics) as foundations for CRM overview pages.
+    - **Application Templates:** (e.g., Kanban, To-Do, Chat) for relevant CRM modules or features.
+    - **Pages & Prototypes:** (e.g., Sign-in, User Profile, Pricing) to avoid rebuilding common views.
+    - **Extensive Form Layouts:** For common data entry tasks.
+- **SPECIFIC TAILUX FEATURES:**
+    - **Data Tables:** For any tabular data display, explicitly request "Tailux's Advanced Data Tables" (which integrates Tanstack Table). Focus on its filtering, sorting, and customization capabilities.
+    - **Forms:** For data input, specify "Tailux's Interactive Forms." Leverage its pre-built form structures and validation integration (likely with React Hook Form and Yup).
+    - **Layouts & Responsiveness:** Utilize Tailux's layout components and responsive classes to structure pages. Ensure all generated UI maintains Tailux's "Ultra-Responsive Layouts" promise.
+    - **React Utilities:** When appropriate, use Tailux's provided React hooks and utilities to simplify workflows, if documented.
+
+## STYLING AND THEMING:
+- **TAILWIND CSS WITHIN TAILUX:** Tailux is built on Tailwind CSS.
+    - Prioritize using Tailux's pre-styled components.
+    - For customizations or new elements not covered by a Tailux component, use Tailwind CSS utility classes consistent with Tailux's design language.
+    - Avoid writing custom CSS files unless absolutely necessary and no Tailwind utility or Tailux component option exists.
+- **TAILUX THEME CUSTOMIZATION:** For global style changes (e.g., primary color, dark/light mode, card skins), instruct to use Tailux's theming system first.
+    - Example: "Set the primary color of the application to 'blue' using Tailux's theme configuration."
+
+## INTERACTION WITH TAILUX DOCUMENTATION:
+- **ASSUME FAMILIARITY OR RESEARCH:** If unsure about a specific Tailux component's props, usage, or customization options, state your intention to consult the Tailux documentation (or use @Web search to find relevant Tailux documentation/examples).
+    - Example: "To implement the draggable Kanban board, I will refer to Tailux's Kanban app template documentation for the correct components and props."
+
+## CODE STRUCTURE AND MAINTAINABILITY (WITH TAILUX):
+- **COMPONENT COHESION:** When using Tailux components, ensure the generated React code correctly imports and utilizes them as per Tailux's intended usage patterns.
+- **MODULARITY:** If a CRM page becomes complex even with Tailux components, break it down into smaller, reusable React components that encapsulate specific pieces of Tailux-based UI. Adhere to the "UNDER 300 LINES" rule per file.
+- **PROPS FOR CUSTOMIZATION:** When creating wrapper components around Tailux elements, expose props clearly to allow customization, rather than hardcoding values.
+
+## AVOIDING REDUNDANCY:
+- **NO REINVENTING THE WHEEL:** If Tailux offers a component for a specific UI need (e.g., a modal, a dropdown, a date picker that might be part of its forms), use it. Do not implement a custom version if a Tailux equivalent exists.
+- **CONSISTENCY:** Re-use Tailux components and patterns consistently across the CRM application to maintain a unified look and feel.
+
+## EXAMPLE PROMPT INTEGRATION:
+- Instead of: "Create a page with a table for users."
+- Prefer: "Create a new CRM module for 'Contacts'. Use Tailux's responsive layout. The main view should be a Tailux Advanced Data Table displaying contact name, email, phone, and company. Include sorting and filtering capabilities provided by the Tailux table."
+- Instead of: "Add a blue button that says 'Submit'."
+- Prefer: "Add a 'Submit' button using Tailux's Button component. Style it as a primary action button according to the current Tailux theme."
+
+
+
+By following these guidelines, the LLM should be better equipped to leverage the full potential of Tailux, leading to faster development, more consistent UI, and less boilerplate code for your CRM project.

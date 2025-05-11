@@ -1,7 +1,15 @@
 @echo off
 echo ===========================================
-echo Git Setup and GitHub Publishing Tool
+echo Git Setup and GitHub Publishing Tool (with build folder)
 echo ===========================================
+echo.
+
+REM Ensure build directory is not ignored
+echo Making sure build directory is not ignored by git...
+findstr /v /c:"/build" .gitignore > .gitignore.temp
+move /y .gitignore.temp .gitignore
+echo # /build  # Commented out to include build directory >> .gitignore
+echo Build directory will be included in git.
 echo.
 
 REM Check if date-fns is installed
@@ -68,12 +76,17 @@ if not exist ".git" (
   )
   
   REM Initial commit if needed
+  git add -f build/
   git add .
-  git commit -m "Initial commit"
+  git commit -m "Initial commit with build directory"
   echo.
   echo Git repository is now set up and ready.
 ) else (
   echo Git repository already initialized.
+  
+  REM Make sure build directory is tracked
+  echo Ensuring build directory is tracked...
+  git add -f build/
 )
 echo.
 
@@ -120,6 +133,10 @@ if %ERRORLEVEL% NEQ 0 (
   set LOCAL_ONLY=0
 )
 echo.
+
+REM Ensure build directory is included before running the publish script
+echo Ensuring build directory is included in the commit...
+git add -f build/
 
 REM Run the publishing script
 echo Running GitHub publishing script...

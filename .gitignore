@@ -7,8 +7,6 @@ node_modules/
 /coverage
 
 # Production
-/build
-/build_backup
 /dist
 
 # Misc
@@ -49,4 +47,4 @@ logs/
 *.log
 
 # Cursor-specific files
-.cursor/ 
+.cursor/ # /build  # Commented out to include build directory 

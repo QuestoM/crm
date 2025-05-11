@@ -2,6 +2,7 @@
 
 const { execSync } = require('child_process');
 const { format } = require('date-fns');
+const fs = require('fs');
 
 // Function to get current timestamp in format: YYYY-MM-DD_HH-mm-ss
 function getTimestamp() {
@@ -39,11 +40,25 @@ function getCurrentBranch() {
   }
 }
 
+// Function to check if we should run in local-only mode
+function isLocalOnly() {
+  try {
+    return fs.existsSync('.publish-config.temp') && 
+           fs.readFileSync('.publish-config.temp', 'utf8').includes('LOCAL_ONLY=true');
+  } catch (error) {
+    return false;
+  }
+}
+
 async function publishToGithub() {
   // Get timestamp for versioning
   const timestamp = getTimestamp();
+  const localOnly = isLocalOnly();
   
   console.log('\n🚀 Starting GitHub publishing process...');
+  if (localOnly) {
+    console.log('⚠️ Running in LOCAL ONLY mode - changes will not be pushed to GitHub');
+  }
   
   // Check git status
   console.log('\n📊 Checking git status...');
@@ -76,20 +91,28 @@ async function publishToGithub() {
     runCommand(`git tag v${timestamp}`);
   }
   
-  // Push changes to remote repository
-  console.log(`\n☁️ Pushing to remote repository (branch: ${currentBranch})...`);
-  const pushResult = runCommand(`git push origin ${currentBranch}`);
-  
-  if (pushResult === null) {
-    console.log('\n⚠️ Failed to push to remote. Attempting to set upstream branch...');
-    runCommand(`git push --set-upstream origin ${currentBranch}`);
+  // Only push if not in local-only mode
+  if (!localOnly) {
+    // Push changes to remote repository
+    console.log(`\n☁️ Pushing to remote repository (branch: ${currentBranch})...`);
+    const pushResult = runCommand(`git push origin ${currentBranch}`);
+    
+    if (pushResult === null) {
+      console.log('\n⚠️ Failed to push to remote. Attempting to set upstream branch...');
+      runCommand(`git push --set-upstream origin ${currentBranch}`);
+    }
+    
+    // Push tags to remote repository
+    console.log('\n🏷️ Pushing tags...');
+    runCommand('git push origin --tags');
+    
+    console.log(`\n✅ Successfully published version v${timestamp} to GitHub!`);
+  } else {
+    console.log(`\n✅ Successfully created version v${timestamp} locally.`);
+    console.log('\n📋 To push to GitHub later, run:');
+    console.log(`git push origin ${currentBranch}`);
+    console.log('git push origin --tags');
   }
-  
-  // Push tags to remote repository
-  console.log('\n🏷️ Pushing tags...');
-  runCommand('git push origin --tags');
-  
-  console.log(`\n✅ Successfully published version v${timestamp} to GitHub!`);
 }
 
 // Execute the function

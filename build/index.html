@@ -1,0 +1,485 @@
+﻿<!doctype html>
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3B82F6" />
+    <meta
+      name="description"
+      content="מערכת CRM למסנני מים - ניהול לקוחות ולידים"
+    />
+    <link rel="apple-touch-icon" href="./logo192.png" />
+    <link rel="manifest" href="./manifest.json" />
+    <title>מערכת CRM למסנני מים</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./auth.js"></script>
+    <script src="./main.js" defer></script>
+    <script src="./tasks.js" defer></script>
+    <script>
+      window.supabase = window.supabase || {
+        createClient: function () {
+        console.error("Supabase SDK failed to load properly");
+        return null;
+        },
+      };
+      
+      // Initialize a global supabaseClient that tasks.js can use
+      if (typeof window.supabase.createClient === 'function') {
+        const supabaseUrl = 'https://rhpntgjnzhtxswanibep.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJocG50Z2puemh0eHN3YW5pYmVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MDUwMDEsImV4cCI6MjA1OTA4MTAwMX0.GQ5JrsjWIMrg0atDiMFz6NCWH7lDT-AJd3lTNCVZq7Y';
+        window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        console.log("Global supabaseClient initialized");
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="logo">
+          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.924 9.513c-1.446-2.509-3.493-5.138-5.31-7.215A1 1 0 0011.4 2.4c-.248.208-6.345 6.11-7.124 13.19-.06.558-.041 1.084.055 1.561C4.522 19.485 6.01 22 12 22a8.963 8.963 0 007.255-3.682c.44-.607.837-1.39 1.032-2.247.46-2.033-.38-4.51-2.363-6.558zM12 20c-5.093 0-5.031-3.173-5.16-4.351-.1-.912.378-3.978 3.66-7.133l1.5 1.225a1 1 0 001.24.4c.127-.07 3.136-1.402 4.888.237.67.627 1.075 1.361 1.024 2.31-.037.688-.258 1.255-.588 1.775L15 14.5a1 1 0 00-1.314 1.496l2.901 2.54a6.733 6.733 0 01-4.587 1.464z"/></svg>
+          מערכת CRM למסנני מים
+        </div>
+        <div style="display: flex; align-items: center;">
+          <div id="connection-status" style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; margin-left: 8px;"></div>
+          <span id="connection-text" style="font-size: 0.875rem; color: #4b5563;">מצב ייצור</span>
+          <button id="reconnect-btn" onclick="reconnectToSupabase()" style="display: none; margin-right: 8px; font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer; align-items: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M3 2v6h6"></path><path d="M21 12A9 9 0 0 0 6 5.3L3 8"></path><path d="M21 22v-6h-6"></path><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"></path></svg>
+            התחבר מחדש
+          </button>
+          <div style="width: 1px; height: 24px; background-color: #e5e7eb; margin: 0 16px;"></div>
+          <div style="display: flex; align-items: center;">
+            <span id="user-name-display" style="font-size: 0.875rem; margin-left: 8px;">טוען...</span>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #e5e7eb; display: flex; align-items: center; justify-content: center;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <button onclick="window.authClient?.signOut()" style="margin-right: 1rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #ef4444; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
+               התנתק
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="sidebar">
+        <nav id="main-nav"></nav>
+      </div>
+
+      <div class="main-content">
+        <div id="dashboard" class="page-content active">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">לוח בקרה - מערכת CRM למסנני מים</h1>
+          <div id="dashboard-stats-container" class="dashboard-stats">
+              <div class="loading" style="grid-column: 1 / -1;"><div class="spinner"></div></div>
+            </div>
+          <div class="dashboard-main" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="left-column">
+              <div id="conversion-trend-container" class="card" style="border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                  <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">מגמת המרת לידים</h2>
+                  <div class="chart-metrics" style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="background-color: #f0f9ff; padding: 0.5rem 1rem; border-radius: 0.5rem; text-align: center;">
+                      <div style="font-size: 0.75rem; color: #6b7280;">ממוצע המרה</div>
+                      <div id="avg-conversion-rate" style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">-%</div>
+                    </div>
+                    <div style="background-color: #f0fdf4; padding: 0.5rem 1rem; border-radius: 0.5rem; text-align: center;">
+                      <div style="font-size: 0.75rem; color: #6b7280;">מגמה</div>
+                      <div id="trend-indicator" style="font-size: 1.25rem; font-weight: 700; color: #10b981;">-%</div>
+                    </div>
+                  </div>
+                </div>
+                  <div id="conversion-trend-widget" style="height: 250px;"><div class="loading"><div class="spinner"></div></div></div>
+                  </div>
+              <div class="card" style="border-radius: 0.75rem; padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                  <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">לידים אחרונים</h2>
+                    <button class="button button-primary" onclick="openAddLeadModal()" style="display: flex; align-items: center; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem;">
+                    <span style="margin-left: 0.25rem;">הוסף ליד חדש</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </button>
+                </div>
+                  <div id="leads-table-loading" class="loading"><div class="spinner"></div></div>
+                  <table id="leads-table" class="table" style="display: none;">
+                    <thead><tr></tr></thead>
+                    <tbody id="leads-table-body"></tbody>
+            </table>
+            </div>
+          </div>
+            <div class="card" style="border-radius: 0.75rem; padding: 1.5rem;">
+              <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">פעילות אחרונה</h2>
+              <div id="activity-loading" class="loading"><div class="spinner"></div></div>
+              <div id="activity-feed" style="display: none;"></div>
+            </div>
+              </div>
+          <div class="dashboard-footer" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+            <div class="card" style="border-radius: 0.75rem; padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600;">משימות היום</h2>
+                <span id="tasks-count-badge" class="badge badge-blue" style="padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem;">- משימות</span>
+              </div>
+              <div class="task-list" style="display: flex; flex-direction: column; gap: 0.75rem;"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            <div class="card" style="border-radius: 0.75rem; padding: 1.5rem;">
+              <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">לקוחות חדשים</h2>
+              <div id="new-customers-chart" style="height: 200px;"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            <div class="card" style="border-radius: 0.75rem; padding: 1.5rem;">
+              <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">פילוח לידים לפי מקור</h2>
+              <div id="leads-by-source-chart" style="height: 250px; display: flex; flex-direction: row; gap: 20px;">
+                  <div class="loading" style="width: 100%;"><div class="spinner"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="leads" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">ניהול לידים</h1>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <input type="text" id="leads-search" placeholder="חיפוש לידים..." class="p-2 border rounded" style="max-width: 300px;"/>
+              <button class="button button-primary" onclick="openAddLeadModal()">הוסף ליד חדש</button>
+            </div>
+            <div id="leads-full-loading" class="loading"><div class="spinner"></div></div>
+            <table id="leads-full-table" class="table" style="display: none;">
+              <thead><tr></tr></thead>
+              <tbody id="leads-full-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="customers" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">ניהול לקוחות</h1>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <input type="text" id="customers-search" placeholder="חיפוש לקוחות..." class="p-2 border rounded" style="max-width: 300px;"/>
+              <button class="button button-primary" onclick="openAddCustomerModal()">הוסף לקוח חדש</button>
+            </div>
+            <div id="customers-loading" class="loading"><div class="spinner"></div></div>
+            <table id="customers-table" class="table" style="display: none;">
+              <thead><tr></tr></thead>
+              <tbody id="customers-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="orders" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">ניהול הזמנות</h1>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <input type="text" id="orders-search" placeholder="חיפוש הזמנות (לפי לקוח, ID)..." class="p-2 border rounded" style="max-width: 300px;"/>
+              <!-- Add Order button could go here if needed, but usually created from customer -->
+            </div>
+            <div id="orders-loading" class="loading"><div class="spinner"></div></div>
+            <table id="orders-table" class="table" style="display: none;">
+              <thead><tr></tr></thead>
+              <tbody id="orders-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="products" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">ניהול מוצרים</h1>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <input type="text" id="products-search" placeholder="חיפוש מוצרים..." class="p-2 border rounded" style="max-width: 300px;"/>
+              <button class="button button-primary" onclick="showProductDetails(null)">הוסף מוצר חדש</button>
+            </div>
+            <div id="products-loading" class="loading"><div class="spinner"></div></div>
+            <table id="products-table" class="table" style="display: none;">
+              <thead><tr></tr></thead>
+              <tbody id="products-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="packages" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">ניהול חבילות</h1>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <input type="text" id="packages-search" placeholder="חיפוש חבילות..." class="p-2 border rounded" style="max-width: 300px;"/>
+              <button class="button button-primary" onclick="openAddPackageModal()">הוסף חבילה חדשה</button>
+            </div>
+            <div id="packages-loading" class="loading"><div class="spinner"></div></div>
+            <table id="packages-table" class="table" style="display: none;">
+              <thead><tr></tr></thead>
+              <tbody id="packages-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tasks" class="page-content">
+          <div class="container mx-auto px-4 py-6">
+            <h2 class="text-2xl font-bold mb-4">ניהול משימות</h2>
+            <div id="tasks-container"></div>
+          </div>
+        </div>
+
+        <div id="reports" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">דוחות</h1>
+          <div class="card">
+            <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">דוח לידים לפי מקור</h2>
+            <div id="leads-by-source-loading" class="loading"><div class="spinner"></div></div>
+            <div id="leads-by-source" style="display: none;">
+              <div class="report-chart-bars" style="height: 300px; display: flex; align-items: flex-end; justify-content: space-around; margin-top: 2rem;"></div>
+              <div class="report-chart-labels" style="display: flex; justify-content: space-around; margin-top: 0.5rem;"></div>
+              </div>
+              </div>
+          <div class="card">
+            <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">דוח ביצועים חודשי</h2>
+            <div id="monthly-performance-loading" class="loading"><div class="spinner"></div></div>
+            <table id="monthly-performance" class="table" style="display: none;">
+              <thead><tr><th>חודש</th><th>לידים חדשים</th><th>לקוחות חדשים</th><th>הזמנות</th><th>הכנסות</th></tr></thead>
+              <tbody id="monthly-performance-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="settings" class="page-content">
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem;">הגדרות מערכת</h1>
+          <div class="card">
+            <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">הגדרות כלליות</h2>
+             <div style="margin-bottom: 1.5rem;"><label for="business-name">שם העסק:</label><input type="text" id="business-name" placeholder="מסנני מים בע״מ"/></div>
+             <div style="margin-bottom: 1.5rem;"><label for="business-logo">לוגו העסק:</label><input type="file" id="business-logo" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.25rem;"/></div>
+             <div style="margin-bottom: 1.5rem;"><label for="contact-email">אימייל ליצירת קשר:</label><input type="email" id="contact-email" placeholder="contact@example.com"/></div>
+             <div style="margin-bottom: 1.5rem;"><label for="contact-phone">טלפון ליצירת קשר:</label><input type="tel" id="contact-phone" placeholder="050-1234567"/></div>
+            <button class="button button-primary" onclick="saveSettings()">שמור הגדרות</button>
+          </div>
+          <div class="card">
+            <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">הגדרות מסד נתונים</h2>
+             <div style="margin-bottom: 1.5rem;"><label for="supabase-url">Supabase URL:</label><input type="text" id="supabase-url" value="https://rhpntgjnzhtxswanibep.supabase.co" readonly/></div>
+            <div style="margin-bottom: 1.5rem;">
+              <label>סטטוס חיבור:</label>
+              <div style="display: flex; align-items: center;">
+                <div id="db-connection-status" style="width: 10px; height: 10px; border-radius: 50%; background-color: #f59e0b; margin-left: 8px;"></div>
+                <span id="db-connection-text" style="font-size: 0.875rem; color: #4b5563;">בודק חיבור...</span>
+              </div>
+            </div>
+            <button class="button button-primary" onclick="testDatabaseConnection()">בדוק חיבור</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="generic-modal-overlay" class="modal-overlay">
+      <div id="generic-modal-content-wrapper" class="modal-content-wrapper">
+        <div class="modal-header">
+          <h2 id="generic-modal-title" class="modal-title">כותרת מודאל</h2>
+          <div class="modal-header-actions">
+            <span id="generic-modal-autosave-indicator" class="modal-autosave-indicator">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M20 6L9 17l-5-5"></path></svg>
+              נשמר אוטומטית
+            </span>
+            <button class="modal-close-button" onclick="closeCurrentModal()">×</button>
+          </div>
+          </div>
+        <div id="generic-modal-body" class="modal-body">
+          <div class="loading"><div class="spinner"></div></div>
+          </div>
+        <div class="modal-footer">
+          <button class="button button-secondary modal-cancel-button" onclick="closeCurrentModal()">ביטול</button>
+          <div id="generic-modal-footer-actions" class="modal-footer-actions"></div>
+          </div>
+          </div>
+          </div>
+
+    <template id="add-lead-form-template">
+      <form id="new-lead-form">
+        <div style="margin-bottom: 1rem;"><label for="lead-first-name">שם פרטי:</label><input type="text" id="lead-first-name" required /></div>
+        <div style="margin-bottom: 1rem;"><label for="lead-last-name">שם משפחה:</label><input type="text" id="lead-last-name" required /></div>
+        <div style="margin-bottom: 1rem;"><label for="lead-phone">טלפון:</label><input type="tel" id="lead-phone" required /></div>
+        <div style="margin-bottom: 1rem;"><label for="lead-email">אימייל:</label><input type="email" id="lead-email" /></div>
+        <div style="margin-bottom: 1rem;"><label for="lead-source">מקור:</label><select id="lead-source" required><option value="website">אתר אינטרנט</option><option value="facebook">פייסבוק</option><option value="referral">הפניה</option><option value="phone">שיחת טלפון</option><option value="instagram">אינסטגרם</option><option value="trade_show">תערוכה</option><option value="newspaper">עיתון</option><option value="other">אחר</option></select></div>
+        <div style="margin-bottom: 1rem;"><label for="lead-status">סטטוס:</label><select id="lead-status" required><option value="new">חדש</option><option value="contacted">נוצר קשר</option><option value="qualified">מוכשר</option><option value="nurturing">בטיפול</option><option value="converted">הומר ללקוח</option><option value="closed">סגור</option><option value="not_interested">לא מעוניין</option></select></div>
+        <div style="margin-bottom: 1rem;"><label for="lead-notes">הערות:</label><textarea id="lead-notes"></textarea></div>
+        </form>
+    </template>
+
+    <template id="add-customer-form-template">
+        <form id="new-customer-form">
+        <div style="margin-bottom: 1rem;"><label for="customer-name">שם מלא:</label><input type="text" id="customer-name" required /></div>
+        <div style="margin-bottom: 1rem;"><label for="customer-phone">טלפון:</label><input type="tel" id="customer-phone" required /></div>
+        <div style="margin-bottom: 1rem;"><label for="customer-email">אימייל:</label><input type="email" id="customer-email" /></div>
+        <div style="margin-bottom: 1rem;"><label for="customer-address">כתובת:</label><input type="text" id="customer-address" /></div>
+        <div style="margin-bottom: 1rem;"><label for="customer-city">עיר:</label><input type="text" id="customer-city" /></div>
+        <div style="margin-bottom: 1rem;"><label for="customer-status">סטטוס:</label><select id="customer-status" required><option value="active">פעיל</option><option value="inactive">לא פעיל</option></select></div>
+        <div style="margin-bottom: 1rem;"><label for="customer-notes">הערות:</label><textarea id="customer-notes"></textarea></div>
+        </form>
+    </template>
+
+    <template id="lead-details-content-template">
+      <div id="lead-details-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+          <div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-first-name">שם פרטי:</label><input type="text" id="detail-lead-first-name" oninput="updateLead('first_name', this.value)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-last-name">שם משפחה:</label><input type="text" id="detail-lead-last-name" oninput="updateLead('last_name', this.value)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-phone">טלפון:</label><input type="tel" id="detail-lead-phone" oninput="updateLead('phone_number', this.value)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-email">אימייל:</label><input type="email" id="detail-lead-email" oninput="updateLead('email', this.value)"/></div>
+          </div>
+          <div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-source">מקור:</label><select id="detail-lead-source" onchange="updateLead('lead_source', this.value)"><option value="website">אתר אינטרנט</option><option value="facebook">פייסבוק</option><option value="referral">הפניה</option><option value="phone">שיחת טלפון</option><option value="instagram">אינסטגרם</option><option value="trade_show">תערוכה</option><option value="newspaper">עיתון</option><option value="other">אחר</option></select></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-status">סטטוס:</label><select id="detail-lead-status" onchange="updateLead('status', this.value)"><option value="new">חדש</option><option value="contacted">נוצר קשר</option><option value="qualified">מוכשר</option><option value="nurturing">בטיפול</option><option value="converted">הומר ללקוח</option><option value="closed">סגור</option><option value="not_interested">לא מעוניין</option></select></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-lead-notes">הערות:</label><textarea id="detail-lead-notes" style="min-height: 100px" oninput="updateLeadNotes(this.value)"></textarea></div>
+            </div>
+            </div>
+        <div id="lead-activity-section" style="margin-top: 2rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+          <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">פעילות אחרונה</h3>
+          <div id="lead-activity-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+    </template>
+
+    <template id="customer-details-content-template">
+      <div id="customer-details-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+          <div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-customer-name">שם מלא:</label><input type="text" id="detail-customer-name" oninput="triggerAutoSave(saveCustomer)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-customer-phone">טלפון:</label><input type="tel" id="detail-customer-phone" oninput="triggerAutoSave(saveCustomer)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-customer-email">אימייל:</label><input type="email" id="detail-customer-email" oninput="triggerAutoSave(saveCustomer)"/></div>
+          </div>
+          <div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-customer-address">כתובת:</label><input type="text" id="detail-customer-address" oninput="triggerAutoSave(saveCustomer)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-customer-city">עיר:</label><input type="text" id="detail-customer-city" oninput="triggerAutoSave(saveCustomer)"/></div>
+          <div style="margin-bottom: 1.5rem;"><label for="detail-customer-status">סטטוס:</label><select id="detail-customer-status" onchange="triggerAutoSave(saveCustomer)"><option value="active">פעיל</option><option value="inactive">לא פעיל</option></select></div>
+            </div>
+            </div>
+        <div id="customer-orders-section" style="margin-top: 2rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+          <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">הזמנות אחרונות</h3>
+          <div id="customer-orders-list" style="max-height: 200px; overflow-y: auto;">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+    </template>
+
+    <template id="product-details-content-template">
+       <div id="product-details-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+          <div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-name">שם המוצר:</label><input type="text" id="detail-product-name" oninput="updateProduct('name', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-sku">מק"ט (SKU):</label><input type="text" id="detail-product-sku" oninput="updateProduct('sku', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-category">קטגוריה:</label><select id="detail-product-category" onchange="updateProduct('category', this.value)"><option value="">בחר קטגוריה...</option><option value="מיזוג אוויר">מיזוג אוויר</option><option value="מקררים">מקררים</option><option value="מכשירי חשמל">מכשירי חשמל</option><option value="מטבח">מטבח</option><option value="בידור">בידור</option><option value="מסנני מים">מסנני מים</option><option value="מחסניות החלפה">מחסניות החלפה</option><option value="אביזרים">אביזרים</option><option value="שירותים">שירותים</option></select></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-description">תיאור:</label><textarea id="detail-product-description" style="min-height: 100px" oninput="updateProduct('description', this.value)"></textarea></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-model">קוד דגם:</label><input type="text" id="detail-product-model" oninput="updateProduct('model_number', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-manufacturer">יצרן:</label><input type="text" id="detail-product-manufacturer" oninput="updateProduct('manufacturer', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-barcode">ברקוד:</label><input type="text" id="detail-product-barcode" oninput="updateProduct('barcode', this.value)"/></div>
+          </div>
+          <div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-price">מחיר מכירה:</label><input type="number" id="detail-product-price" step="0.01" oninput="updateProduct('price', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-cost">עלות:</label><input type="number" id="detail-product-cost" step="0.01" oninput="updateProduct('cost', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-inventory">כמות במלאי:</label><input type="number" id="detail-product-inventory" step="1" min="0" oninput="updateProductInventory(this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-min-threshold">סף מינימום למלאי:</label><input type="number" id="detail-product-min-threshold" step="1" min="0" oninput="updateInventoryField('min_threshold', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-status">סטטוס:</label><select id="detail-product-status" onchange="triggerAutoSave(saveProduct)"><option value="פעיל">פעיל</option><option value="לא פעיל">לא פעיל</option><option value="אזל מהמלאי">אזל מהמלאי</option></select></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-color">צבע:</label><input type="text" id="detail-product-color" oninput="updateProduct('color', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;"><label for="detail-product-warranty">אחריות (חודשים):</label><input type="number" id="detail-product-warranty" step="1" min="0" oninput="updateProduct('warranty_months', this.value)"/></div>
+            <div style="margin-bottom: 1.5rem;">
+              <div style="display: flex; gap: 0.5rem">
+                <div style="flex: 2"><label for="detail-product-weight">משקל:</label><input type="number" id="detail-product-weight" step="0.01" oninput="updateProduct('weight', this.value)"/></div>
+                <div style="flex: 1"><label for="detail-product-weight-unit">יחידה:</label><select id="detail-product-weight-unit" onchange="updateProduct('weight_unit', this.value)"><option value="kg">ק"ג</option><option value="g">גר'</option><option value="lb">פאונד</option></select></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 1.5rem;" id="product-feature-toggle">
+              <div style="display: flex; align-items: center;">
+                <input type="checkbox" id="detail-product-featured" onchange="updateProduct('is_featured', this.checked)"/><label for="detail-product-featured" style="margin-bottom: 0; margin-right: 0.5rem">מוצר מומלץ/מוצג</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+            <div>
+              <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; font-weight: 600;">מידות המוצר</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                <div><label for="detail-product-length">אורך:</label><input type="number" id="detail-product-length" step="0.1" oninput="updateProductDimension('length', this.value)"/></div>
+                <div><label for="detail-product-width">רוחב:</label><input type="number" id="detail-product-width" step="0.1" oninput="updateProductDimension('width', this.value)"/></div>
+                <div><label for="detail-product-height">גובה:</label><input type="number" id="detail-product-height" step="0.1" oninput="updateProductDimension('height', this.value)"/></div>
+                <div><label for="detail-product-dimensions-unit">יחידה:</label><select id="detail-product-dimensions-unit" onchange="updateProductDimension('unit', this.value)"><option value="cm">ס"מ</option><option value="mm">מ"מ</option><option value="m">מטר</option><option value="inch">אינץ'</option></select></div>
+              </div>
+            </div>
+            <div>
+              <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; font-weight: 600;">תמונת מוצר</h3>
+              <div style="margin-bottom: 1rem;"><label for="detail-product-image">קישור לתמונה:</label><input type="url" id="detail-product-image" placeholder="https://example.com/image.jpg" oninput="updateProduct('image_url', this.value)"/></div>
+              <div id="product-image-preview" style="display: none; margin-top: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.5rem; text-align: center;">
+                <img id="product-image-element" style="max-width: 100%; max-height: 150px; object-fit: contain;" alt="תמונת מוצר"/>
+              </div>
+            </div>
+          </div>
+        </div>
+    </template>
+
+    <template id="package-details-content-template">
+      <div id="package-details-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+          <div>
+            <div style="margin-bottom: 1rem;"><label for="detail-package-name">שם החבילה:</label><input type="text" id="detail-package-name" required/></div>
+            <div style="margin-bottom: 1rem;"><label for="detail-package-description">תיאור:</label><textarea id="detail-package-description" rows="3"></textarea></div>
+          </div>
+          <div>
+             <div style="margin-bottom: 1rem;"><label for="detail-package-base-price">מחיר בסיס לחבילה (לא חובה):</label><input type="number" step="0.01" id="detail-package-base-price" placeholder="סכום כולל אם רלוונטי"/></div>
+             <div style="margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center;">
+                  <input type="checkbox" id="detail-package-active" checked/><label for="detail-package-active" style="margin-bottom: 0; margin-right: 0.5rem">חבילה פעילה</label>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600;">פריטים בחבילה</h3>
+        
+        <!-- Add Item Section -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: flex-end; border: 1px solid #eee; padding: 1rem; border-radius: 6px; background-color: #f9fafb;">
+            <div style="flex-grow: 1;"><label for="package-item-select">הוסף מוצר:</label><select id="package-item-select" disabled><option value="">טוען מוצרים...</option></select></div>
+            <div style="width: 80px;"><label for="package-item-quantity">כמות:</label><input type="number" id="package-item-quantity" value="1" min="1"/></div>
+            <div style="width: 150px;"><label for="package-item-price-override">מחיר מיוחד:</label><input type="number" step="0.01" min="0" id="package-item-price-override" placeholder="מחיר רגיל"/></div>
+            <button class="button button-secondary" onclick="addItemToPackageModal()" style="padding: 0.6rem 1rem">הוסף פריט</button>
+        </div>
+
+        <!-- Items List -->
+        <div id="package-items-list-container" style="max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem; border: 1px solid #eee; border-radius: 4px;">
+            <table class="table" style="border: none"><thead style="position: sticky; top: 0; z-index: 1"><tr><th style="background-color: #f9fafb">מוצר</th><th style="background-color: #f9fafb">כמות</th><th style="background-color: #f9fafb">מחיר רגיל</th><th style="background-color: #f9fafb">מחיר בחבילה</th><th style="background-color: #f9fafb; width: 50px"></th></tr></thead><tbody id="package-items-list-body"><tr><td colspan="5" style="text-align: center; padding: 2rem; color: #6b7280">אין פריטים בחבילה</td></tr></tbody></table>
+        </div>
+      </div>
+    </template>
+
+    <template id="order-content-template">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem">
+            <div>
+                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">פרטי הזמנה</h3>
+          <div style="margin-bottom: 1rem;"><label for="order-date">תאריך הזמנה:</label><input type="date" id="order-date" /></div>
+          <div style="margin-bottom: 1rem;"><label for="order-status">סטטוס הזמנה:</label><select id="order-status"><option value="new">חדש</option><option value="processing">בטיפול</option><option value="completed">הושלם</option><option value="delivered">נמסר</option><option value="cancelled">בוטל</option></select></div>
+          <div style="margin-bottom: 1rem;"><label for="order-payment-method">אמצעי תשלום:</label><select id="order-payment-method"><option value="">בחר...</option><option value="credit_card">כרטיס אשראי</option><option value="bank_transfer">העברה בנקאית</option><option value="cash">מזומן</option><option value="check">צ׳ק</option><option value="other">אחר</option></select></div>
+          <div style="margin-bottom: 1rem;"><label for="order-payment-status">סטטוס תשלום:</label><select id="order-payment-status"><option value="pending">ממתין לתשלום</option><option value="paid">שולם</option><option value="partially_paid">שולם חלקית</option><option value="refunded">הוחזר</option></select></div>
+          <div style="margin-bottom: 1rem;"><label for="order-discount">הנחה (בש"ח או %):</label><input type="text" id="order-discount" placeholder="לדוגמה: 50 או 10%" oninput="calculateOrderTotals()"/></div>
+          <div style="margin-bottom: 1rem;"><div style="display: flex; align-items: center;"><input type="checkbox" id="order-installation" /><label for="order-installation" style="margin-bottom: 0; margin-right: 0.5rem">כולל התקנה</label></div></div>
+          <div style="margin-bottom: 1rem;"><label for="order-notes">הערות להזמנה:</label><textarea id="order-notes" rows="4"></textarea></div>
+                </div>
+            <div>
+                <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">פריטים בהזמנה</h3>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: flex-end; border-bottom: 1px solid #eee; padding-bottom: 1.5rem;">
+            <div style="flex-grow: 1;"><label for="order-item-select">בחר מוצר / חבילה:</label><select id="order-item-select" disabled><option value="">טוען פריטים...</option></select></div>
+            <div style="width: 80px;"><label for="order-item-quantity">כמות:</label><input type="number" id="order-item-quantity" value="1" min="1"/></div>
+            <button class="button button-primary" onclick="addItemToOrder()" style="padding: 0.6rem 1rem">הוסף</button>
+                    </div>
+                <div style="max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem; border: 1px solid #eee; border-radius: 4px;">
+            <table class="table" style="border: none"><thead style="position: sticky; top: 0; z-index: 1"><tr><th style="background-color: #f9fafb">פריט</th><th style="background-color: #f9fafb">כמות</th><th style="background-color: #f9fafb">מחיר יחידה</th><th style="background-color: #f9fafb">סה"כ פריט</th><th style="background-color: #f9fafb; width: 50px"></th></tr></thead><tbody id="order-items-table-body"><tr><td colspan="5" style="text-align: center; padding: 2rem; color: #6b7280">אין פריטים בהזמנה</td></tr></tbody></table>
+                </div>
+          <div style="border-top: 1px solid #e5e7eb; padding-top: 1.5rem">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem;"><span>סה"כ לפני הנחה ומע"מ:</span><span id="order-subtotal">0.00 ₪</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem;"><span>הנחה:</span><span id="order-discount-amount">0.00 ₪</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem;"><span>סה"כ אחרי הנחה:</span><span id="order-total-after-discount">0.00 ₪</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 0.9rem;"><span>מע"מ (18%):</span><span id="order-vat">0.00 ₪</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;"><span>סה"כ לתשלום:</span><span id="order-grand-total">0.00 ₪</span></div>
+                    </div>
+                    </div>
+                    </div>
+    </template>
+
+    <div id="toast" class="toast">
+      <span id="toast-message"></span>
+    </div>
+  </body>
+</html>
+
