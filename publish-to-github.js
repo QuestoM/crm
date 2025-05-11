@@ -18,8 +18,14 @@ function runCommand(command) {
   } catch (error) {
     console.error(`Error executing command: ${command}`);
     console.error(error.message);
-    process.exit(1);
+    return null; // Return null instead of exiting to allow for better error handling
   }
+}
+
+// Function to check if there are changes to commit
+function hasChangesToCommit() {
+  const status = runCommand('git status --porcelain');
+  return status && status.trim().length > 0;
 }
 
 // Function to get the current branch name
@@ -51,17 +57,33 @@ async function publishToGithub() {
   console.log('\n📦 Staging all changes...');
   runCommand('git add .');
   
-  // Commit with timestamp
-  console.log('\n💾 Committing changes...');
-  runCommand(`git commit -m "Version ${timestamp}"`);
-  
-  // Create a tag with the timestamp
-  console.log('\n🏷️ Creating tag...');
-  runCommand(`git tag v${timestamp}`);
+  // Check if there are changes to commit
+  if (hasChangesToCommit()) {
+    // Commit with timestamp
+    console.log('\n💾 Committing changes...');
+    runCommand(`git commit -m "Version ${timestamp}"`);
+    
+    // Create a tag with the timestamp
+    console.log('\n🏷️ Creating tag...');
+    runCommand(`git tag v${timestamp}`);
+  } else {
+    console.log('\n📝 No changes to commit. Creating an empty commit for versioning...');
+    // Create an empty commit with allow-empty flag
+    runCommand(`git commit --allow-empty -m "Version ${timestamp} (no changes)"`);
+    
+    // Create a tag with the timestamp
+    console.log('\n🏷️ Creating tag...');
+    runCommand(`git tag v${timestamp}`);
+  }
   
   // Push changes to remote repository
   console.log(`\n☁️ Pushing to remote repository (branch: ${currentBranch})...`);
-  runCommand(`git push origin ${currentBranch}`);
+  const pushResult = runCommand(`git push origin ${currentBranch}`);
+  
+  if (pushResult === null) {
+    console.log('\n⚠️ Failed to push to remote. Attempting to set upstream branch...');
+    runCommand(`git push --set-upstream origin ${currentBranch}`);
+  }
   
   // Push tags to remote repository
   console.log('\n🏷️ Pushing tags...');
